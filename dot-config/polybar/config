@@ -1,0 +1,260 @@
+;Polybar Config
+;Semi-transparent
+;author: nitepone
+
+
+[colors]
+; Theme Primary Colors
+yellow = #f3e430
+orange = #a89c14
+red = #fb007a
+green = #10a778
+black = #424242
+white = #f1f1f1
+
+; Color Aliases
+bg = ${colors.white}
+fg = ${colors.black}
+fgalt = ${colors.black}
+lighttext = ${colors.bg}
+darktext = ${colors.fg}
+alert = ${colors.red}
+
+
+
+[global/wm]
+margin-bottom = 0
+
+
+
+[bar/bottomleft]
+monitor = ${env:MONITOR:fallback-value}
+; monitor = DP-4
+wm-name = bottombar
+
+width = 35%
+height = 32
+offset-x = 3%
+offset-y = 1%
+bottom = true
+padding-left = 5
+padding-right = 5
+border-size = 3
+border-color = ${colors.fgalt}
+
+background = ${colors.bg}
+foreground = ${colors.fg}
+
+font-0 = fira sans:size=11;1
+font-1 = fira:size=10;1
+font-2 = FontAwesome:size=10;1
+
+module-margin = 2
+modules-left = bspwm
+modules-right = xwindow
+
+
+
+[bar/bottomright]
+monitor = ${env:MONITOR:fallback-value}
+; monitor = DP-4
+wm-name = bottombar
+
+width = 35%
+height = 32
+offset-x = 62%
+offset-y = 1%
+radius = 0
+bottom = true
+padding-left = 5
+padding-right = 5
+border-size = 3
+border-color = ${colors.fgalt}
+
+fixed-center = false
+
+background = ${colors.bg}
+foreground = ${colors.fg}
+
+font-0 = fira sans:size=10;1
+font-1 = fira:size=10;1
+font-2 = FontAwesome:size=10;1
+
+module-margin = 2
+modules-left = cpu memory
+modules-right = wlan pulseaudio battery date
+
+tray-position = right
+;tray-padding =
+
+
+
+[module/xwindow]
+type = internal/xwindow
+label = %title:0:20:...%
+
+
+
+[module/bspwm]
+type = internal/bspwm
+format = <label-state><label-mode>
+wrapping-scroll = true
+
+label-mode-padding = 0
+label-mode-foreground = ${colors.fg}
+label-mode-background = ${colors.bg}
+
+label-focused = %name%
+label-focused-foreground = ${colors.bg}
+label-focused-background = ${colors.fg}
+label-focused-padding = 2
+
+label-occupied = %name%
+label-occupied-padding = 2
+
+
+label-urgent = %name%
+label-urgent-foreground = ${colors.lighttext}
+label-urgent-background = ${colors.alert}
+label-urgent-padding = 2
+
+label-empty =
+
+
+
+[module/pulseaudio]
+type = internal/pulseaudio
+interval = 2
+
+format-volume = <ramp-volume> <label-volume>
+label-volume = %percentage%%
+label-volume-foreground = ${root.foreground}
+
+format-muted-foreground = ${colors.fgalt}
+label-muted = mute
+
+ramp-volume-0 = 
+ramp-volume-1 = 
+ramp-volume-2 = 
+
+ramp-headphones-0 = 
+ramp-headphones-1 = 
+
+
+
+[module/wlan]
+type = internal/network
+interface = wlp147s0
+interval = 3.0
+
+format-connected = <label-connected>
+label-connected = %essid% (%signal%)
+label-connected-foreground = ${colors.green}
+
+format-disconnected =
+;format-disconnected = <label-disconnected>
+;format-disconnected-underline = ${self.format-connected-underline}
+;label-disconnected = %ifname% disconnected
+;label-disconnected-foreground = ${colors.foreground-alt}
+
+
+
+[module/date]
+type = internal/date
+interval = 5
+
+date = %b %d
+date-alt = %a, %b %d
+
+time = %H:%M
+time-alt = %H:%M:%S
+
+label = %date% %time%
+
+
+
+[module/cpu]
+type = internal/cpu
+interval = 0.5
+
+format = <ramp-coreload>
+label = 
+
+ramp-coreload-0 = ▁
+ramp-coreload-1 = ▂
+ramp-coreload-2 = ▃
+ramp-coreload-3 = ▄
+ramp-coreload-4 = ▅
+ramp-coreload-5 = ▆
+ramp-coreload-6 = ▇
+ramp-coreload-7 = █
+
+ramp-coreload-0-foreground = ${colors.fg}
+ramp-coreload-1-foreground = ${colors.fg}
+ramp-coreload-2-foreground = ${colors.fg}
+ramp-coreload-3-foreground = ${colors.yellow}
+ramp-coreload-4-foreground = ${colors.yellow}
+ramp-coreload-5-foreground = ${colors.orange}
+ramp-coreload-6-foreground = ${colors.orange}
+ramp-coreload-7-foreground = ${colors.red}
+
+
+
+[module/memory]
+type = internal/memory
+
+format = <ramp-used>
+label = 
+
+ramp-used-0 = ▁▁
+ramp-used-1 = ▂▂
+ramp-used-2 = ▃▃
+ramp-used-3 = ▄▄
+ramp-used-4 = ▅▅
+ramp-used-5 = ▆▆
+ramp-used-6 = ▇▇
+ramp-used-7 = ██
+
+ramp-used-0-foreground = ${colors.fg}
+ramp-used-1-foreground = ${colors.fg}
+ramp-used-2-foreground = ${colors.fg}
+ramp-used-3-foreground = ${colors.fg}
+ramp-used-4-foreground = ${colors.fg}
+ramp-used-5-foreground = ${colors.yellow}
+ramp-used-6-foreground = ${colors.orange}
+ramp-used-7-foreground = ${colors.red}
+
+
+
+[module/battery]
+type = internal/battery
+battery = BAT0
+adapter = AC
+full-at = 98
+
+format-charging = <animation-charging> <label-charging>
+
+format-discharging = <ramp-capacity> <label-discharging>
+
+format-full-prefix = 
+format-full-prefix-foreground = ${colors.fg}
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+
+ramp-capacity-foreground = ${colors.fg}
+
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-3 = 
+animation-charging-foreground = ${colors.fg}
+animation-charging-framerate = 750
+
+
+
+[settings]
+screenchange-reload = false
