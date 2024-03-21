@@ -47,6 +47,10 @@ super + o
 super + alt + Escape
 	bspc quit
 
+# reload bspwm config (useful for monitor change)
+super + shift + Escape
+	~/.config/bspwm/bspwmrc
+
 # close and kill
 super + {_,shift + }q
 	bspc node -c
