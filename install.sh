@@ -1,7 +1,8 @@
 #!/bin/bash
 # ugh why are you reading this
 
-LDF_REPO="https://github.com/Nitepone/dotfiles-pub.git"
+LDF_REPO_SLUG="Nitepone/dotfiles-pub"
+LDF_REPO="https://github.com/${LDF_REPO_SLUG}.git"
 LDF_SCRIPT_ROOT="$(realpath "$(dirname "$0")")"
 LDF_STAGING="${LDF_SCRIPT_ROOT}"
 LDF_DEST="${HOME}"
@@ -34,7 +35,8 @@ function is_curl_install {
         return 0
     fi
     # implicit return!
-    test "${LDF_REPO}" != "${my_repo_url}"
+    # shellcheck disable=SC2076
+    ! [[ "${my_repo_url}" =~ "${LDF_REPO_SLUG}" ]]
 }
 
 function get_dots {
@@ -71,6 +73,16 @@ function meta_inst_dot_config {
 }
 
 
+function inst_bspwm_deps {
+    sudo apt-get update -y > /dev/null
+    pr_info "Installing bspwm"
+    sudo apt-get install -y bspwm > /dev/null
+    pr_info "Installing bspwmrc deps"
+    sudo apt-get install -y picom sxhkd network-manager-gnome polybar edid-decode suckless-tools feh alacritty fonts-font-awesome > /dev/null
+    pr_info "Installing sxhkdrc deps"
+    sudo apt-get install -y brightnessctl pulseaudio-utils maim xclip rofi > /dev/null
+}
+
 # Environment Installation Functions
 
 function inst_shell_env {
@@ -95,6 +107,9 @@ function inst_bspwm_env {
 # "main"
 pr "Standing up staging directory..."
 get_dots || exit 1
+
+pr "Installing all package dependencies"
+inst_bspwm_deps
 
 pr "Installing all dotfiles"
 inst_shell_env
