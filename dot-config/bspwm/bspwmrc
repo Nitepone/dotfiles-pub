@@ -2,6 +2,8 @@
 #
 # auto-bspwmrc: Dynamic BSPWM display configuration.
 #
+# to install.. feh sxhkd nm-applet polybar edid-decode wmname picom
+#
 # Luna Hart <luna@night.horse>
 
 # shellcheck disable=SC1090
@@ -15,11 +17,11 @@ if [[ -n "$DEBUG" || -n "$VERBOSE" ]]; then
 fi
 
 # Array of primary monitors. First match will be used.
-X_PRIMARY=("DP-2-3")
+X_PRIMARY=("eDP")
 
 # Array of monitor order configs.
 # string format: "[MONITOR1_OUTPUT] [MONITOR1_ORIENTATION] [MONITOR2_OUTPUT] [MONITOR2_ORIENTATION] ..."
-X_ORDERED_CONFIGS=("eDP-1 normal DP-2-3 normal DP-2-1 normal" "eDP-1 normal DP-2-3 normal" "eDP-1 normal DP-2 normal")
+X_ORDERED_CONFIGS=("eDP normal DisplayPort-0 normal" "eDP normal DisplayPort-1 normal" "eDP normal DisplayPort-2 normal" "eDP normal DisplayPort-3 normal")
 XOC_PARAM_COUNT=2
 
 # Array of edid modeline config strings.
@@ -273,9 +275,9 @@ sxhkd > "$REDIRECT" &
 #   Java compatible wmname
 wmname LG3D > "$REDIRECT" &
 #   wallpaper
-feh --bg-fill ~/.config/wallpapers/background.png > "$REDIRECT" &
+feh --bg-fill ~/.config/bspwm/background.png > "$REDIRECT" &
 #   compositor
-picom --experimental-backends --blur-method dual_kawase > "$REDIRECT" &
+picom > "$REDIRECT" &
 
 # configure xinput stuff
 #   root cursor

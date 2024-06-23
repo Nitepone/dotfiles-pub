@@ -1,3 +1,8 @@
+# Luna's best sxhkd config..
+#
+# sudo apt-get install -y brightnessctl pactl maim xclip rofi
+
+
 #
 # wm independent hotkeys
 #
@@ -19,23 +24,26 @@ super + Escape
 #Basic features
 #
 XF86MonBrightness{Up,Down}
-    xbacklight -{inc,dec} 8
+    brightnessctl s 5%{+,-}
 
 # sound control
-XF86Audio{MicMute,Mute,RaiseVolume,LowerVolume}
-    sound {mic,mute,up, down}
+XF86Audio{RaiseVolume,LowerVolume}
+    pactl set-sink-volume "$(pactl get-default-sink)" {+,-}5%
+
+XF86AudioMute
+    pactl set-sink-mute "$(pactl get-default-sink)" toggle
 
 # print screen
 Print
-    screenshot fullscreen
+    maim | xclip -selection clipboard -t image/png
 
 # print screen selection
 ctrl + Print
-    screenshot selection
+    maim -s | xclip -selection clipboard -t image/png
 
 # lock session
 super + o
-    i3lock
+    dm-tool lock
 
 
 
