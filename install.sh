@@ -2,7 +2,7 @@
 # ugh why are you reading this
 
 LDF_REPO="https://github.com/Nitepone/dotfiles-pub.git"
-LDF_SCRIPT_ROOT="$(realpath "$(dirname $0)")"
+LDF_SCRIPT_ROOT="$(realpath "$(dirname "$0")")"
 LDF_STAGING="${LDF_SCRIPT_ROOT}"
 LDF_DEST="${HOME}"
 
@@ -17,7 +17,6 @@ function pr_error {
     echo -ne '\e[031m'
     echo -n "$*" >&2
     echo -e '\e[0m'
-
 }
 
 function pr_info {
@@ -60,7 +59,7 @@ function meta_inst_dot_config {
     dot_config_dest="${LDF_DEST}/.config/${1}"
 
     if test -z "$1"; then
-        pr_error "Bug: $FUNCNAME called without a subdir?.."
+        pr_error "Bug: ${FUNCNAME[*]} called without a subdir?.."
         return 1
     fi
     if ! test -d "${dot_config_src}"; then
@@ -86,9 +85,10 @@ function inst_editor_env {
 
 function inst_bspwm_env {
     pr_info "Installing bspwm environment"
-    meta_inst_dot_config nvim
+    meta_inst_dot_config bspwm
     meta_inst_dot_config polybar
     meta_inst_dot_config sxhkd
+    chmod +x "${LDF_DEST}/.config/bspwm/bspwmrc"
 }
 
 
