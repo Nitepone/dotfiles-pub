@@ -125,21 +125,38 @@ function inst_bspwm_env {
     chmod +x "${LDF_DEST}/.config/bspwm/bspwmrc"
 }
 
+function prompt_execute {
+    read -p "Execute? (y/n) " -n 1 -r
+    echo
+    [[ $REPLY =~ ^[Yy]$ ]]
+}
 
 # "main"
 pr "Standing up staging directory..."
 get_dots || exit 1
 
 pr "Installing all package dependencies"
-inst_bspwm_deps
+if prompt_execute; then
+    inst_bspwm_deps
+else
+    pr_info "skipped!"
+fi
 
 pr "Installing all dotfiles"
-inst_shell_env
-inst_editor_env
-inst_bspwm_env
+if prompt_execute; then
+    inst_shell_env
+    inst_editor_env
+    inst_bspwm_env
+else
+    pr_info "skipped!"
+fi
 
 pr "Installing bin utilities"
-meta_inst_dot_local_bin cfgedit
+if prompt_execute; then
+    meta_inst_dot_local_bin cfgedit
+else
+    pr_info "skipped!"
+fi
 
 if test "${LDF_ERROR_COUNT}" -eq 0; then
     pr "Install Complete!"
