@@ -5,7 +5,9 @@ LDF_REPO_SLUG="Nitepone/dotfiles-pub"
 LDF_REPO="https://github.com/${LDF_REPO_SLUG}.git"
 LDF_SCRIPT_ROOT="$(realpath "$(dirname "$0")")"
 LDF_STAGING="${LDF_SCRIPT_ROOT}"
-LDF_DEST="${HOME}"
+if [[ -z "$LDF_DEST" ]]; then
+    LDF_DEST="${HOME}"
+fi
 
 LDF_ERROR_COUNT=0
 
@@ -54,24 +56,44 @@ function get_dots {
 }
 
 function meta_inst_dot_config {
-    local dot_config_dest
-    local dot_config_src
+    local dest
+    local src
 
-    dot_config_src="${LDF_STAGING}/dot-config/${1}/"
-    dot_config_dest="${LDF_DEST}/.config/${1}"
+    src="${LDF_STAGING}/dot-config/${1}/"
+    dest="${LDF_DEST}/.config/${1}"
 
     if test -z "$1"; then
         pr_error "Bug: ${FUNCNAME[*]} called without a subdir?.."
         return 1
     fi
-    if ! test -d "${dot_config_src}"; then
-        pr_error "Missing sources: ${dot_config_src}"
+    if ! test -d "${src}"; then
+        pr_error "Missing sources: ${src}"
     fi
 
-    mkdir -p "${dot_config_dest}"
-    cp -r "${dot_config_src}/"* "${dot_config_dest}"
+    mkdir -p "${dest}"
+    cp -r "${src}/"* "${dest}"
 }
 
+function meta_inst_dot_local_bin {
+    local dest
+    local src
+
+    src="${LDF_STAGING}/dot-local/bin/${1}"
+    dest="${LDF_DEST}/.local/bin/${1}"
+
+    if test -z "$1"; then
+        pr_error "Bug: ${FUNCNAME[*]} called without a bin name?.."
+        return 1
+    fi
+    if ! test -f "${src}"; then
+        pr_error "Missing source: ${src}"
+    fi
+
+    pr_info "Installing bin: ${1}"
+    mkdir -p "$(dirname "${dest}")"
+    cp -r "${src}" "${dest}"
+    chmod +x ${dest}
+}
 
 function inst_bspwm_deps {
     sudo apt-get update -y > /dev/null
@@ -115,6 +137,9 @@ pr "Installing all dotfiles"
 inst_shell_env
 inst_editor_env
 inst_bspwm_env
+
+pr "Installing bin utilities"
+meta_inst_dot_local_bin cfgedit
 
 if test "${LDF_ERROR_COUNT}" -eq 0; then
     pr "Install Complete!"

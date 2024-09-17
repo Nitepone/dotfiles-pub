@@ -1,0 +1,73 @@
+#!/bin/bash
+# Simple script to quickly find my config files..
+
+
+# -- START Tab Completion Subscript --
+declare -A CFGEDIT_CFG_FILES=( \
+	["nvim"]="$HOME/.config/nvim/init.lua" \
+	["bspwm"]="$HOME/.config/bspwm/bspwmrc" \
+	["sxhkd"]="$HOME/.config/sxhkd/sxhkdrc" \
+	["polybar"]="$HOME/.config/polybar/config" \
+)
+
+function _cfgedit_completions {
+	case "${#COMP_WORDS[@]}" in
+		"2")
+			# shellcheck disable=SC2207
+			# this works, 1v1 me in mw2, interventions on rust
+			COMPREPLY+=( $(compgen -W "${!CFGEDIT_CFG_FILES[*]}" "${COMP_WORDS[1]}" ) )
+			;;
+	esac
+}
+
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+	complete -F _cfgedit_completions cfgedit
+	# if being sourced, return before entering main program
+	return
+fi
+# -- END Tab Completion --
+
+
+declare -r EDITOR="nvim"
+
+function pr {
+	printf "%s\n" "$*"
+}
+
+function pr_error {
+	if test -t 0; then
+		printf "\e[31m%s\e[0m\n" "$*" >&2
+	else
+		echo "ERROR: $*" >&2
+	fi
+}
+
+function pr_info {
+	if test -t 0; then
+		printf "\e[2m%s\e[0m\n" "$*"
+	else
+		echo "$*"
+	fi
+}
+
+function pr_usage {
+	IFS=','
+	echo -ne "\e[1m"
+	echo "Usage: $(basename "$0") <app name>"
+	echo -ne "\e[0m"
+	echo "Subcommands:"
+	for key in "${!CFGEDIT_CFG_FILES[@]}"; do
+		printf "  %-10s %s\n" "${key}:" "${CFGEDIT_CFG_FILES[$key]}"
+	done
+	echo -ne "\e[0m"
+	unset IFS
+}
+
+for key in "${!CFGEDIT_CFG_FILES[@]}"; do
+	if [[ "$1" == "$key" ]]; then
+		"$EDITOR" "${CFGEDIT_CFG_FILES[$key]}"
+		exit $?
+	fi
+done
+
+pr_usage

@@ -102,6 +102,9 @@ alias sshit="TERM=xterm-256color ssh"
 . /usr/share/bash-completion/completions/ssh
 complete -F _ssh sshit
 
+# Add additional completions
+source cfgedit
+
 eval $(ssh-agent)
 ssh-add ~/.ssh/venus
 clear
