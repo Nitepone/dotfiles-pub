@@ -92,7 +92,42 @@ function meta_inst_dot_local_bin {
     pr_info "Installing bin: ${1}"
     mkdir -p "$(dirname "${dest}")"
     cp -r "${src}" "${dest}"
-    chmod +x ${dest}
+    chmod +x "${dest}"
+}
+
+function inst_rustup {
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y &> /dev/null
+    if ! command -v cargo > /dev/null; then
+        pr_error "Rust install failed.."
+    fi
+}
+
+function inst_xwayland_satellite {
+    local build_dir
+    build_dir="$(mktemp -d)"
+    git clone https://github.com/Supreeeme/xwayland-satellite.git "${build_dir}" &> /dev/null
+    pushd "${build_dir}" > /dev/null || ( pr_error "Bug: ${FUNCNAME[*]} Push/popd failed?" && return 1 )
+    cargo build --release -q
+    sudo install -m 755 target/release/xwayland-satellite /usr/bin/
+    popd > /dev/null || ( pr_error "Bug: ${FUNCNAME[*]} Push/popd failed?" && return 1 )
+    rm -rf "${build_dir}"
+}
+
+function inst_niri {
+    local build_dir
+    build_dir="$(mktemp -d)"
+    git clone https://github.com/YaLTeR/niri.git "${build_dir}" &> /dev/null
+    pushd "${build_dir}" > /dev/null || ( pr_error "Bug: ${FUNCNAME[*]} Push/popd failed?" && return 1 )
+    cargo build --release -q
+    sudo install -m 755 target/release/niri /usr/bin/
+    # XXX(luna) the systemd file looks in /usr/bin for niri-session..
+    sudo install -m 755 resources/niri-session /usr/bin/
+    sudo install -m 755 resources/niri.desktop /usr/share/wayland-sessions/
+    sudo install -m 755 resources/niri-portals.conf /usr/share/xdg-desktop-portal/
+    sudo install -m 755 resources/niri.service /etc/systemd/user/
+    sudo install -m 755 resources/niri-shutdown.target /etc/systemd/user/
+    popd > /dev/null || ( pr_error "Bug: ${FUNCNAME[*]} Push/popd failed?" && return 1 )
+    rm -rf "${build_dir}"
 }
 
 function inst_bspwm_deps {
@@ -103,6 +138,25 @@ function inst_bspwm_deps {
     sudo apt-get install -y picom sxhkd network-manager-gnome polybar edid-decode suckless-tools feh alacritty fonts-font-awesome > /dev/null
     pr_info "Installing sxhkdrc deps"
     sudo apt-get install -y brightnessctl pulseaudio-utils maim xclip rofi > /dev/null
+}
+
+function inst_niri_deps {
+    sudo apt-get update -y > /dev/null
+    pr_info "Installing niri build deps"
+    inst_rustup
+    sudo apt-get install -y gcc clang libudev-dev libgbm-dev libxkbcommon-dev \
+        libegl1-mesa-dev libwayland-dev libinput-dev libdbus-1-dev \
+        libsystemd-dev libseat-dev libpipewire-0.3-dev libpango1.0-dev \
+        libdisplay-info-dev > /dev/null
+    pr_info "Building and Installing niri"
+    inst_niri # armadyl forgive me
+    pr_info "Installing xwayland-satellite"
+    sudo apt-get -y install libxcb-cursor-dev libxcb1-dev > /dev/null
+    pr_info "Building and Installing xwayland-satellite"
+    inst_xwayland_satellite
+    pr_info "Installing niri runtime deps"
+    sudo apt-get install -y network-manager-gnome alacritty brightnessctl \
+        pulseaudio-utils fuzzel swaybg waybar > /dev/null
 }
 
 # Environment Installation Functions
@@ -125,6 +179,12 @@ function inst_bspwm_env {
     chmod +x "${LDF_DEST}/.config/bspwm/bspwmrc"
 }
 
+function inst_niri_env {
+    pr_info "Installing niri environment"
+    meta_inst_dot_config niri
+    meta_inst_dot_config waybar
+}
+
 function prompt_execute {
     read -p "Execute? (y/n) " -n 1 -r
     echo
@@ -135,18 +195,32 @@ function prompt_execute {
 pr "Standing up staging directory..."
 get_dots || exit 1
 
-pr "Installing all package dependencies"
+pr "Install bspwm deps and env"
 if prompt_execute; then
     inst_bspwm_deps
+    inst_bspwm_env
 else
     pr_info "skipped!"
 fi
 
-pr "Installing all dotfiles"
+pr "Install niri deps and env"
+if prompt_execute; then
+    inst_niri_deps
+    inst_niri_env
+else
+    pr_info "skipped!"
+fi
+
+pr "Install shell env"
 if prompt_execute; then
     inst_shell_env
+else
+    pr_info "skipped!"
+fi
+
+pr "Install editor env"
+if prompt_execute; then
     inst_editor_env
-    inst_bspwm_env
 else
     pr_info "skipped!"
 fi
