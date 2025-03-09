@@ -8,6 +8,9 @@ declare -A CFGEDIT_CFG_FILES=( \
 	["bspwm"]="$HOME/.config/bspwm/bspwmrc" \
 	["sxhkd"]="$HOME/.config/sxhkd/sxhkdrc" \
 	["polybar"]="$HOME/.config/polybar/config" \
+	["niri"]="$HOME/.config/niri/config.kdl" \
+	["waybar-cfg"]="$HOME/.config/waybar/config" \
+	["waybar-css"]="$HOME/.config/waybar/style.css" \
 )
 
 function _cfgedit_completions {
