@@ -4,13 +4,17 @@
 
 # -- START Tab Completion Subscript --
 declare -A CFGEDIT_CFG_FILES=( \
-	["nvim"]="$HOME/.config/nvim/init.lua" \
-	["bspwm"]="$HOME/.config/bspwm/bspwmrc" \
-	["sxhkd"]="$HOME/.config/sxhkd/sxhkdrc" \
-	["polybar"]="$HOME/.config/polybar/config" \
-	["niri"]="$HOME/.config/niri/config.kdl" \
-	["waybar-cfg"]="$HOME/.config/waybar/config" \
-	["waybar-css"]="$HOME/.config/waybar/style.css" \
+	#XXX No spaces in file paths!!!
+	["nvim"]="${HOME}/.config/nvim/init.lua" \
+	["bspwm"]="${HOME}/.config/bspwm/bspwmrc" \
+	["sxhkd"]="${HOME}/.config/sxhkd/sxhkdrc" \
+	["polybar"]="${HOME}/.config/polybar/config" \
+	["fuzzel"]="${HOME}/.config/fuzzel/fuzzel.ini /etc/xdg/fuzzel/fuzzel.ini" \
+	["niri"]="${HOME}/.config/niri/config.kdl ${HOME}/waybar/config /etc/xdg/waybar/config" \
+	["waybar-cfg"]="${HOME}/.config/waybar/config ${HOME}/waybar/config /etc/xdg/waybar/config" \
+	["waybar-css"]="${HOME}/.config/waybar/style.css ${HOME}/waybar/style.css /etc/xdg/waybar/style.css" \
+	["eww-cfg"]="${HOME}/.config/eww/config /etc/xdg/eww/config" \
+	["eww-css"]="${HOME}/.config/eww/style.css /etc/xdg/eww/style.css" \
 )
 
 function _cfgedit_completions {
@@ -53,24 +57,74 @@ function pr_info {
 	fi
 }
 
+function get_existing_cfg_path {
+	local app_name="$1"
+	local IFS=' '
+	# shellcheck disable=SC2206
+	local app_cfg_paths=( ${CFGEDIT_CFG_FILES[$app_name]} )
+	for possible_path in "${app_cfg_paths[@]}" ; do
+		if test -f "${possible_path}"; then
+			echo "$possible_path"
+			return 0
+		fi
+	done
+	return 1
+}
+
+function get_first_cfg_path {
+	local app_name="$1"
+	local IFS=' '
+	# shellcheck disable=SC2206
+	local app_cfg_paths=( ${CFGEDIT_CFG_FILES[$app_name]} )
+	local app_first_path=${app_cfg_paths[0]}
+	if test -n "${app_first_path}"; then
+		echo "${app_first_path}"
+		return 0
+	fi
+	return 1
+}
+
 function pr_usage {
-	IFS=','
+	local missed_app_names=()
+	local cfg_path=""
 	echo -ne "\e[1m"
-	echo "Usage: $(basename "$0") <app name>"
+	echo "Usage: $(basename "$0") <Config Name>"
 	echo -ne "\e[0m"
-	echo "Subcommands:"
+	echo "Available Configs to Edit:"
 	for key in "${!CFGEDIT_CFG_FILES[@]}"; do
-		printf "  %-10s %s\n" "${key}:" "${CFGEDIT_CFG_FILES[$key]}"
+		cfg_path="$(get_existing_cfg_path "${key}")"
+		if test $? -ne 0; then
+			missed_app_names+=("${key}")
+			continue
+		fi
+		printf "  %-10s %s\n" "${key}:" "${cfg_path}"
 	done
 	echo -ne "\e[0m"
-	unset IFS
+	if test "${#missed_app_names[@]}" -eq 0; then
+		return
+	fi
+	echo "Possible Configs to Create:"
+	for key in "${missed_app_names[@]}"; do
+		cfg_path="$(get_first_cfg_path "${key}")"
+		if test $? -ne 0; then
+			pr_error "I don't feel so good mr stark.."
+			continue
+		fi
+		printf "  %-10s %s\n" "${key}:" "${cfg_path}"
+	done
+	echo -ne "\e[0m"
 }
 
 for key in "${!CFGEDIT_CFG_FILES[@]}"; do
-	if [[ "$1" == "$key" ]]; then
-		"$EDITOR" "${CFGEDIT_CFG_FILES[$key]}"
-		exit $?
+	if [[ "$1" != "$key" ]]; then
+		continue
 	fi
+	cfg_path="$(get_existing_cfg_path "${key}")"
+	if test $? -ne 0; then
+		cfg_path="$(get_first_cfg_path "${key}")"
+	fi
+	"$EDITOR" "${cfg_path}"
+	exit $?
 done
 
 pr_usage
